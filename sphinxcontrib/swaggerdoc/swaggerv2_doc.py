@@ -89,7 +89,7 @@ class SwaggerV2DocDirective(Directive):
         paragraph = nodes.paragraph()
         paragraph += nodes.strong('', 'Responses')
         entries.append(paragraph)
-        head = ['Name', 'Description', 'Type']
+        head = ['Name', 'Type', 'Description']
         for response_name, response in responses.items():
             paragraph = nodes.paragraph()
             paragraph += nodes.emphasis(
@@ -102,8 +102,8 @@ class SwaggerV2DocDirective(Directive):
                 for property_name, property in response.get('schema').get('properties', {}).items():
                     row = []
                     row.append(property_name)
+                    row.append(nodes.emphasis('', property.get('type', '')))
                     row.append(property.get('description', ''))
-                    row.append(property.get('type', ''))
                     body.append(row)
                 table = self.create_table(head, body)
                 entries.append(table)
@@ -117,7 +117,7 @@ class SwaggerV2DocDirective(Directive):
             if param.get('in', '') == 'body':
                 row = []
                 row.append(param.get('name', ''))
-                row.append(param.get('type', ''))
+                row.append(nodes.emphasis('', param.get('type', '')))
                 row.append(param.get('description', ''))
                 body.append(row)
         if len(body) > 0:
@@ -136,7 +136,7 @@ class SwaggerV2DocDirective(Directive):
             if param.get('in', '') == 'query':
                 row = []
                 row.append(param.get('name', ''))
-                row.append(param.get('type', ''))
+                row.append(nodes.emphasis('', param.get('type', '')))
                 row.append(param.get('description', ''))
                 body.append(row)
         if len(body) > 0:
@@ -155,7 +155,7 @@ class SwaggerV2DocDirective(Directive):
             if param.get('in', '') == 'headers':
                 row = []
                 row.append(param.get('name', ''))
-                row.append(param.get('type', ''))
+                row.append(nodes.emphasis('', param.get('type', '')))
                 row.append(param.get('description', ''))
                 body.append(row)
         if len(body) > 0:
@@ -170,10 +170,12 @@ class SwaggerV2DocDirective(Directive):
         swagger_node = swaggerv2doc(path)
         swagger_node += nodes.title(path, method_type.upper() + ' ' + path)
         paragraph = nodes.paragraph()
-        paragraph += nodes.Text(method.get('summary', ''))
+        paragraph += nodes.Text(method.get('summary', '') or method.get('description', ''))
         bullet_list = nodes.bullet_list()
         method_sections = {'Description': 'description', 'Consumes': 'consumes', 'Produces': 'produces'}
         for title in method_sections:
+            if title == 'Description' and not len(method.get('summary', '')):
+                continue;
             value_name = method_sections[title]
             value = method.get(value_name)
             if value is not None:
