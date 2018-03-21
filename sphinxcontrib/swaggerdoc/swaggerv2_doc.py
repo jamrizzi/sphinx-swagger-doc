@@ -19,11 +19,10 @@ def depart_swaggerv2doc_node(self, node):
 
 class SwaggerV2DocDirective(Directive):
     DEFAULT_GROUP = ''
-    # this enables content in the directive
     has_content = True
     def processSwaggerURL(self, url):
         parsed_url = urlparse.urlparse(url)
-        if not parsed_url.scheme:  # Assume file relative to documentation
+        if not parsed_url.scheme:
             env = self.state.document.settings.env
             relfn, absfn = env.relfn2path(url)
             env.note_dependency(relfn)
@@ -37,11 +36,22 @@ class SwaggerV2DocDirective(Directive):
             return r.json()
 
     def create_item(self, key, value):
-        para = nodes.paragraph()
-        para += nodes.strong('', key)
-        para += nodes.Text(value)
         item = nodes.list_item()
-        item += para
+        p = nodes.paragraph()
+        p += nodes.strong('', key)
+        p += nodes.Text(value)
+        item += p
+        return item
+
+    def create_items(self, key, values):
+        item = nodes.list_item()
+        p = nodes.paragraph()
+        bullet_list = nodes.bullet_list()
+        for value in values:
+            bullet_list += self.create_item('', value)
+        p += nodes.strong('', key)
+        item += p
+        item += bullet_list
         return item
 
     def expand_values(self, list):
@@ -62,23 +72,19 @@ class SwaggerV2DocDirective(Directive):
         table = nodes.table()
         tgroup = nodes.tgroup()
         table.append(tgroup)
-        # Create a colspec for each column
         if colspec is None:
             colspec = [1 for n in range(len(head))]
         for width in colspec:
             tgroup.append(nodes.colspec(colwidth=width))
-        # Create the table headers
         thead = nodes.thead()
         thead.append(self.row(head))
         tgroup.append(thead)
-        # Create the table body
         tbody = nodes.tbody()
         tbody.extend([self.row(r) for r in body])
         tgroup.append(tbody)
         return table
 
     def make_responses(self, responses):
-        # Create an entry with swagger responses and a table of the response properties
         entries = []
         paragraph = nodes.paragraph()
         paragraph += nodes.strong('', 'Responses')
@@ -92,7 +98,6 @@ class SwaggerV2DocDirective(Directive):
             )
             entries.append(paragraph)
             body = []
-            # if the optional field properties is in the schema, display the properties
             if isinstance(response.get('schema'), dict) and 'properties' in response.get('schema'):
                 for property_name, property in response.get('schema').get('properties', {}).items():
                     row = []
@@ -175,7 +180,7 @@ class SwaggerV2DocDirective(Directive):
                 if (isinstance(value, str)):
                     bullet_list += self.create_item(title + ': \n', value)
                 else:
-                    bullet_list += self.create_item(title + ': \n', value)
+                    bullet_list += self.create_items(title + ': \n', value)
         paragraph += bullet_list
         swagger_node += paragraph
         parameters = method.get('parameters')
