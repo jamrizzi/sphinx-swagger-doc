@@ -87,15 +87,16 @@ class SwaggerV2DocDirective(Directive):
     def make_responses(self, responses):
         entries = []
         paragraph = nodes.paragraph()
-        paragraph += nodes.strong('', 'Responses')
+        paragraph += nodes.strong('', 'Responses' if len(responses) > 1 else 'Response')
         entries.append(paragraph)
         head = ['Name', 'Type', 'Description']
         for response_name, response in responses.items():
             paragraph = nodes.paragraph()
-            paragraph += nodes.emphasis(
-                '',
-                '%s - %s' % (response_name, response.get('description', ''))
-            )
+            if len(responses) > 1:
+                paragraph += nodes.emphasis(
+                    '',
+                    '%s - %s' % (response_name, response.get('description', ''))
+                )
             entries.append(paragraph)
             body = []
             if isinstance(response.get('schema'), dict) and 'properties' in response.get('schema'):
