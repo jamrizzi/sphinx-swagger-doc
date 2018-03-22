@@ -10,12 +10,12 @@ start:
 env:
 	@virtualenv env
 	@env/bin/pip install -r ./requirements.txt
-	@pip install twine
 	@echo ::: ENV :::
 
 .PHONY: freeze
 freeze:
 	@env/bin/pip freeze > ./requirements.txt
+	@env/bin/pip install twine
 	@echo ::: FREEZE :::
 
 dist: env
@@ -28,7 +28,7 @@ README.rst:
 
 .PHONY: publish
 publish: README.rst dist
-	@twine upload dist/*
+	@env/bin/twine upload dist/*
 	@echo ::: PUBLISH :::
 
 .PHONY: clean

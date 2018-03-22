@@ -10,7 +10,7 @@ def read(fname):
     return open(os.path.join(os.path.dirname(__file__), fname)).read()
 
 setup(
-    name='sphinxcontrib-swagger-doc',
+    name='sphinx-swagger-doc',
     version='0.2.0',
     author='Jam Risser',
     author_email='jamrizzi@gmail.com',
