@@ -89,7 +89,7 @@ class SwaggerV2DocDirective(Directive):
         paragraph = nodes.paragraph()
         paragraph += nodes.strong('', 'Responses' if len(responses) > 1 else 'Response')
         entries.append(paragraph)
-        head = ['Name', 'Type', 'Description']
+        head = ['Name', 'Type', 'Example', 'Description']
         for response_name, response in responses.items():
             paragraph = nodes.paragraph()
             if len(responses) > 1:
@@ -102,25 +102,38 @@ class SwaggerV2DocDirective(Directive):
             if isinstance(response.get('schema'), dict) and 'properties' in response.get('schema'):
                 for property_name, property in response.get('schema').get('properties', {}).items():
                     row = []
-                    row.append(property_name)
+                    row.append(nodes.strong('', property_name))
                     row.append(nodes.emphasis('', property.get('type', '')))
+                    row.append(property.get('example', ''))
                     row.append(property.get('description', ''))
                     body.append(row)
                 table = self.create_table(head, body)
                 entries.append(table)
+        if len(entries) < 3:
+            return []
         return entries
 
     def make_body(self, parameters):
         entries = []
-        head = ['Name', 'Type', 'Description']
+        head = ['Name', 'Type', 'Example', 'Description']
         body = []
         for param in parameters:
             if param.get('in', '') == 'body':
-                row = []
-                row.append(param.get('name', ''))
-                row.append(nodes.emphasis('', param.get('type', '')))
-                row.append(param.get('description', ''))
-                body.append(row)
+                if 'schema' in param and 'properties' in param['schema']:
+                    for key, body_param in param['schema']['properties'].items():
+                        row = []
+                        row.append(nodes.strong('', key))
+                        row.append(nodes.emphasis('', body_param.get('type', '')))
+                        row.append(body_param.get('example', ''))
+                        row.append(body_param.get('description', ''))
+                        body.append(row)
+                else:
+                    row = []
+                    row.append(nodes.strong('', param.get('name', '')))
+                    row.append(nodes.emphasis('', param.get('type', '')))
+                    row.append(body_param.get('example', ''))
+                    row.append(param.get('description', ''))
+                    body.append(row)
         if len(body) > 0:
             table = self.create_table(head, body)
             paragraph = nodes.paragraph()
@@ -131,14 +144,21 @@ class SwaggerV2DocDirective(Directive):
 
     def make_query(self, parameters):
         entries = []
-        head = ['Name', 'Type', 'Description']
+        head = ['Name', 'Type', 'Example', 'Description']
         body = []
         for param in parameters:
             if param.get('in', '') == 'query':
                 row = []
-                row.append(param.get('name', ''))
-                row.append(nodes.emphasis('', param.get('type', '')))
-                row.append(param.get('description', ''))
+                if 'schema' in param and 'type' in param['schema']:
+                    row.append(nodes.strong('', param.get('name', '')))
+                    row.append(nodes.emphasis('', param['schema'].get('type', '')))
+                    row.append(param['schema'].get('example', ''))
+                    row.append(param.get('description', ''))
+                else:
+                    row.append(nodes.strong('', param.get('name', '')))
+                    row.append(nodes.emphasis('', param.get('type', '')))
+                    row.append('')
+                    row.append(param.get('description', ''))
                 body.append(row)
         if len(body) > 0:
             table = self.create_table(head, body)
