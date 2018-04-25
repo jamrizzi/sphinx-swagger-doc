@@ -131,7 +131,7 @@ class SwaggerV2DocDirective(Directive):
                     row = []
                     row.append(nodes.strong('', param.get('name', '')))
                     row.append(nodes.emphasis('', param.get('type', '')))
-                    row.append(body_param.get('example', ''))
+                    row.append(param.get('example', ''))
                     row.append(param.get('description', ''))
                     body.append(row)
         if len(body) > 0:
